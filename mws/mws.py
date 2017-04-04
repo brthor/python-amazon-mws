@@ -272,12 +272,29 @@ class MWS(object):
 class Subscriptions(MWS):
     """ Amazon MWS Subscriptions API """
 
+    URI = "/Subscriptions/2013-07-01"
+    VERSION = "2013-07-01"
+
     def register_destination(self, marketplaceid, sqs_queue_url):
         """
         Registers the given sqs queue to receive notifications.
         """
-        data={
+        data = {
             'Action': "RegisterDestination",
+            'MarketplaceId': marketplaceid,
+            'Destination.AttributeList.member.1.Key': 'sqsQueueUrl',
+            'Destination.AttributeList.member.1.Value': sqs_queue_url,
+            'Destination.DeliveryChannel': 'SQS'
+        }
+
+        return self.make_request(data, method='POST')
+
+    def send_test_notification_to_destination(self, marketplaceid, sqs_queue_url):
+        """
+        Registers the given sqs queue to receive notifications.
+        """
+        data = {
+            'Action': "SendTestNotificationToDestination",
             'MarketplaceId': marketplaceid,
             'Destination.AttributeList.member.1.Key': 'sqsQueueUrl',
             'Destination.AttributeList.member.1.Value': sqs_queue_url,
@@ -290,7 +307,7 @@ class Subscriptions(MWS):
         """
         Creates the subscription for a notification at a registered sqs queue url.
         """
-        data={
+        data = {
             'Action': "CreateSubscription",
             'MarketplaceId': marketplaceid,
             'Subscription.Destination.AttributeList.member.1.Key': 'sqsQueueUrl',
@@ -301,6 +318,7 @@ class Subscriptions(MWS):
         }
 
         return self.make_request(data, method='POST')
+
 
 class Feeds(MWS):
     """ Amazon MWS Feeds API """
