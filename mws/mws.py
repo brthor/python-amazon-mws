@@ -12,6 +12,9 @@ import base64
 
 import utils
 import re
+
+from mws.feeEstimateRequest import FeeEstimateRequest
+
 try:
     from xml.etree.ElementTree import ParseError as XMLError
 except ImportError:
@@ -503,6 +506,7 @@ class Orders(MWS):
         return self.make_request(data)
 
 
+
 class Products(MWS):
     """ Amazon MWS Products API """
 
@@ -520,6 +524,25 @@ class Products(MWS):
                     MarketplaceId=marketplaceid,
                     Query=query,
                     QueryContextId=contextid)
+        return self.make_request(data)
+
+    def get_my_fees_estimate(self, feeEstimateRequests):
+        # type: (List[FeeEstimateRequest]) -> Any
+        data = dict(Action='GetMyFeesEstimate')
+
+        for i, feeEstimateRequest in enumerate(feeEstimateRequests):
+            prefix = 'FeesEstimateRequestList.FeesEstimateRequest.{0}.'.format(i+1)
+            data[prefix + 'MarketplaceId'] = feeEstimateRequest.marketplaceId
+            data[prefix + 'IdType'] = feeEstimateRequest.idType
+            data[prefix + 'IdValue'] = feeEstimateRequest.idValue
+            data[prefix + 'IsAmazonFulfilled'] = feeEstimateRequest.isAmazonFulfilled and 'true' or 'false'
+            data[prefix + 'Identifier'] = 'request' + str(i+1)
+            data[prefix + 'PriceToEstimateFees.ListingPrice.CurrencyCode'] = feeEstimateRequest.listingPriceCurrencyCode
+            data[prefix + 'PriceToEstimateFees.ListingPrice.Amount'] = '%.2f' % feeEstimateRequest.listingPrice
+            data[prefix + 'PriceToEstimateFees.Shipping.CurrencyCode'] = feeEstimateRequest.shippingPriceCurrencyCode
+            data[prefix + 'PriceToEstimateFees.Shipping.Amount'] = '%.2f' % feeEstimateRequest.shippingPrice
+            data[prefix + 'PriceToEstimateFees.Points.PointsNumber'] = str(feeEstimateRequest.points)
+
         return self.make_request(data)
 
     def get_matching_product(self, marketplaceid, asins):
