@@ -13,8 +13,6 @@ import base64
 import utils
 import re
 
-from mws.feeEstimateRequest import FeeEstimateRequest
-
 try:
     from xml.etree.ElementTree import ParseError as XMLError
 except ImportError:
