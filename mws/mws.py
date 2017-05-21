@@ -165,12 +165,7 @@ class MWS(object):
             }
             raise MWSError(error_msg)
 
-    def make_request(self, extra_data, method="GET", **kwargs):
-        """Make request to Amazon MWS API with these parameters
-        """
-
-        # Remove all keys with an empty value because
-        # Amazon's MWS does not allow such a thing.
+    def _construct_request_url(self, extra_data, method):
         extra_data = remove_empty(extra_data)
 
         params = {
@@ -184,9 +179,20 @@ class MWS(object):
         if self.auth_token:
             params['MWSAuthToken'] = self.auth_token
         params.update(extra_data)
-        request_description = '&'.join(['%s=%s' % (k, urllib.quote(params[k], safe='-_.~').encode('utf-8')) for k in sorted(params)])
+        request_description = '&'.join(
+            ['%s=%s' % (k, urllib.quote(params[k], safe='-_.~').encode('utf-8')) for k in sorted(params)])
         signature = self.calc_signature(method, request_description)
         url = '%s%s?%s&Signature=%s' % (self.domain, self.uri, request_description, urllib.quote(signature))
+
+        return url
+
+    def make_request(self, extra_data, method="GET", **kwargs):
+        """Make request to Amazon MWS API with these parameters
+        """
+
+        # Remove all keys with an empty value because
+        # Amazon's MWS does not allow such a thing.
+        url = self._construct_request_url(extra_data, method)
         headers = {'User-Agent': 'python-amazon-mws/0.0.1 (Language=Python)'}
         headers.update(kwargs.get('extra_headers', {}))
 
